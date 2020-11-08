@@ -8,6 +8,7 @@ class Buttoner
     // _pressedVal      - the value of the button when pressed
     // _unpressedVal    - the value of the button when not pressed
     // _isPressed       - internal value for state tracking
+    // _isPressedDown   - triggers once on each press (single, double, or hold)
     // _isSinglePressed - a single press
     // _isDoublePressed - a double press
     // _isHeld          - a press and hold
@@ -21,6 +22,8 @@ class Buttoner
     bool _isPressed;
     bool _pressCount;
     long _pressedAt;
+    bool _isPressedDown;
+    bool _isPressedUp;
     bool _isSinglePressed;
     bool _isDoublePressed;
     bool _isHeld;
@@ -41,6 +44,8 @@ class Buttoner
       _isPressed(false),
       _pressCount(0),
       _pressedAt(0),
+      _isPressedDown(false),
+      _isPressedUp(false),
       _isSinglePressed(false),
       _isDoublePressed(false),
       _isHeld(false),
@@ -55,6 +60,7 @@ class Buttoner
       return oldVal;
     }
 
+    const bool isPressedDown() const { return _isPressedDown; }
     const bool isSinglePressed() const { return _isSinglePressed; }
     const bool isDoublePressed() const { return _isDoublePressed; }
     const bool isHeld() const { return _isHeld; }
@@ -67,6 +73,7 @@ class Buttoner
 
     void update() {
       long nowTime = millis();
+      bool wasPressed = _isPressedDown;
 
       if (_isHeld && _isHeldStarted) {
         _isHeldStarted = false;
@@ -80,8 +87,16 @@ class Buttoner
       if (_isSinglePressed) {
         _isSinglePressed = false;
       }
+      if (_isPressedDown) {
+        _isPressedDown = false;
+      }
 
       if (_val == _pressedVal) {
+        if (wasPressed) {
+          _isPressedDown = false;
+        } else if (_isPressedUp) {
+          _isPressedDown = true;
+        }
         if (!_isPressed && _pressCount == 0 && (long)(nowTime - _pressedAt) >= _threshMillis) {
           // Pressed
           _pressCount = 1;
@@ -99,8 +114,11 @@ class Buttoner
           _isSinglePressed = false;
           _isHeld = true;
           _isHeldStarted = true;
+          _isPressedDown = false;
         }
+        _isPressedUp = false;
       } else if (_val == _unpressedVal) {
+        _isPressedUp = true;
         if (_isSinglePressed) {
           _isSinglePressed = false;
           _isPressed = false;
