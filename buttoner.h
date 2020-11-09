@@ -13,7 +13,7 @@ class Buttoner
     // _isDoublePressed - a double press
     // _isHeld          - a press and hold
     // _isHeldStarted   - the hold started in this cycle
-    // _isReleased      - the hold was released in this cycle
+    // _isReleased      - the hold (or press)  was released in this cycle
     long _val;
     long _pressedVal;
     long _unpressedVal;
@@ -118,15 +118,20 @@ class Buttoner
         }
         _isPressedUp = false;
       } else if (_val == _unpressedVal) {
+        if (!_isPressedUp) {
+          _isReleased = true;
+        }
         _isPressedUp = true;
         if (_isSinglePressed) {
           _isSinglePressed = false;
           _isPressed = false;
+          _isReleased = true;
         }
         if (_isDoublePressed) {
           _isDoublePressed = false;
           _isPressed = false;
           _pressCount = 0;
+          _isReleased = true;
         }
 
         if (_isPressed && _pressCount == 1 && (long)(nowTime - _pressedAt) < _doubleThreshMillis) {
